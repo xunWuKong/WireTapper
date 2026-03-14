@@ -11,6 +11,8 @@ WireTapper is a wireless OSINT tool designed to discover, map, and analyze radio
 
 WireTapper detects and correlates signals from common wireless technologies, helping users understand what devices exist, where they are likely located, and how they interact, without active intrusion.
 
+WireTapper identifies leaked Wi-Fi network credentials based on privacy-protecting k-Anonymity query scheme.
+
 <p align="center">
   🔗 <strong>Website:</strong>
   <a href="https://haybnz.web.app?utm_source=github.com">https://haybnz.web.app</a>
@@ -47,7 +49,7 @@ WireTapper detects and correlates signals from common wireless technologies, hel
 
 WireTapper can identify and analyze signals from:
 
-*   **Wi-Fi** access points & clients
+*   **Wi-Fi** access points & clients, Wi-Fi credentials leak
 *   **Bluetooth & BLE** devices
 *   **Wireless CCTV / IP cameras**
 *   **Vehicles** broadcasting RF signals (infotainment, telemetry, keyless systems)
@@ -61,6 +63,7 @@ WireTapper can identify and analyze signals from:
 WireTapper integrates with several external services to provide intelligence. You will need to obtain API keys from the following:
 
 *   **[Wigle.net](https://wigle.net/)** – Wireless network mapping and discovery.
+*   **[wpa-sec](https://wpa-sec.stanev.org)** – Distributed WPA-PSK auditor database.
 *   **[OpenCellID](https://opencellid.org/)** – Open-source database of cell towers.
 *   **[Shodan](https://www.shodan.io/)** – Search engine for Internet-connected devices.
     *   **Note:** A **Premium account** is required to use Shodan's API with this tool.

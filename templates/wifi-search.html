@@ -1686,9 +1686,9 @@
             renderSidebar(filteredResults);
 
             filteredResults.forEach((device, index) => {
-                const { lat, lon, ssid, bssid, cell_id, ip, vendor, signal, accuracy, timestamp, type } = device;
+                const { lat, lon, ssid, bssid, cell_id, ip, vendor, signal, accuracy, timestamp, type, leaked } = device;
                 if (lat && lon) {
-                    const icon = getDeviceIcon(type);
+                    const icon = getDeviceIcon(type, leaked);
                     const marker = L.marker([lat, lon], { icon })
                         .bindPopup(`
                             <div style="font-family: 'Share Tech Mono', monospace; color: var(--primary-color);">
@@ -1700,6 +1700,7 @@
                                 ${signal ? `SIGNAL: ${signal} dBm<br>` : ''}
                                 ${accuracy ? `ACCURACY: ${accuracy} m<br>` : ''}
                                 ${timestamp ? `LAST_SEEN: ${new Date(timestamp).toLocaleString()}<br>` : ''}
+                                ${leaked ? `<span style="color: #FF4444; font-weight: bold;">WPA-SEC LEAKED</span><br>` : ''}
                             </div>
                         `);
                     markers.addLayer(marker);
@@ -1761,6 +1762,7 @@
                 item.innerHTML = `
                     <div class="node-header">
                         <span class="node-name">${node.ssid || node.ip || 'Unknown'}</span>
+                        ${node.leaked ? `<span class="node-type" style="color: #FF4444; font-weight: bold;">WPA-SEC LEAKED</span>` : ``}
                         <span class="node-type" style="background: ${getCategoryColor(node.type)}44; color: ${getCategoryColor(node.type)};">${node.type || 'node'}</span>
                     </div>
                     <div class="node-meta">
@@ -1801,7 +1803,7 @@
         }
 
         // Get icon based on device type
-        function getDeviceIcon(type) {
+        function getDeviceIcon(type, leaked) {
             const icons = {
                 router: 'fas fa-wifi',
                 cell_tower: 'fas fa-broadcast-tower',
@@ -1822,6 +1824,8 @@
             if (type === 'car') color = '#FFD700'; // Gold for transport
             if (type === 'camera' || type === 'dashcam') color = '#FF4444'; // Red for surveillance
             if (type === 'tv' || type === 'headphone') color = '#00FF88'; // Green for entertainment
+
+            if (leaked) color = '#FF4444';
 
             return L.divIcon({
                 html: `<i class="${iconClass}" style="color: ${color}; font-size: 20px; text-shadow: 0 0 10px ${color}"></i>`,

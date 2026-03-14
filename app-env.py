@@ -3,6 +3,7 @@ import requests
 import ssl
 import os
 from flask import Flask, request, jsonify, render_template
+from hashlib import sha1
 
 app = Flask(__name__)
 
@@ -26,6 +27,18 @@ DUMMY_DATA = [
         "accuracy": 50,
         "timestamp": "2025-04-11T10:00:00Z",
         "type": "router"
+    },
+    {
+        "lat": 51.507,
+        "lon": -0.09,
+        "ssid": "TestWiFi2",
+        "bssid": "00:14:22:01:23:46",
+        "vendor": "Generic",
+        "signal": -65,
+        "accuracy": 60,
+        "timestamp": "2025-04-11T10:00:00Z",
+        "type": "router",
+        "leaked": True
     },
     {
         "lat": 51.506,
@@ -67,6 +80,45 @@ def classify_device(name, original_type):
     if any(k in name_upper for k in ["WATCH", "FITBIT", "GARMIN", "WHOOP"]):
         return "iot"
     return original_type
+
+def wpasec_kquery(devices):
+    if not isinstance(devices, list):
+        return devices
+    clids = set()
+    try:
+        for d in devices:
+            if d['type'] == 'router' and d['bssid'] != None and d['ssid'] != None:
+                # Normalize BSSID
+                bssid = d['bssid'].replace(':', '').replace('-', '').lower()
+                if len(bssid) != 12 or not all(c in "0123456789abcdef" for c in bssid):
+                    continue
+                # Hexlify SSID. Presume utf-8 encoding, which is not always the case
+                ssid = d['ssid'].encode('utf-8').hex()
+                # Build hash and clid
+                d['hash'] = sha1(f"{bssid}{ssid}".encode("ascii")).hexdigest()
+                clids.add(d['hash'][:4])
+
+        # Query wpa-sec k-Anonimity interface
+        wpasec_response = requests.post(
+            'https://wpa-sec.stanev.org/bmacssid',
+            data=jsonify(list(clids)).get_data(as_text=True)
+        )
+        if wpasec_response.status_code == 200:
+            wpasec_json = wpasec_response.json()
+            for d in devices:
+                if 'hash' not in d:
+                    continue
+                suffixes = wpasec_json.get(d['hash'][:4])
+                if not suffixes:
+                    continue
+                for s in suffixes:
+                    if d['hash'].endswith(s):
+                        d['leaked'] = True
+                        break
+    except Exception as e:
+        print(f"wpa-sec kquery exception: {str(e)}")
+
+    return devices
 
 @app.route('/nearby')
 def nearby():
@@ -132,6 +184,8 @@ def nearby():
                         "timestamp": network.get('lastupdt'),
                         "type": classified_type
                     })
+                # Augment devices with wpa-sec leaked data
+                devices = wpasec_kquery(devices)
             else:
                 print(f"Wigle error: {wigle_response.status_code} - {wigle_response.text}")
         except Exception as e:
@@ -373,6 +427,8 @@ def search():
                             "timestamp": network.get('lastupdt'),
                             "type": "router"
                         })
+                    # Augment devices with wpa-sec leaked data
+                    devices = wpasec_kquery(devices)
                 else:
                     print(f"Wigle location error: {wigle_response.status_code} - {wigle_response.text}")
             except Exception as e:
@@ -430,6 +486,8 @@ def search():
                         "timestamp": network.get('lastupdt'),
                         "type": "router"
                     })
+                # Augment devices with wpa-sec leaked data
+                devices = wpasec_kquery(devices)
             else:
                 print(f"Wigle BSSID error: {wigle_response.status_code} - {wigle_response.text}")
         except Exception as e:
@@ -454,6 +512,8 @@ def search():
                         "timestamp": network.get('lastupdt'),
                         "type": "router"
                     })
+                # Augment devices with wpa-sec leaked data
+                devices = wpasec_kquery(devices)
             else:
                 print(f"Wigle SSID error: {wigle_response.status_code} - {wigle_response.text}")
         except Exception as e:
