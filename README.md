@@ -45,6 +45,13 @@ WireTapper identifies leaked Wi-Fi network credentials based on privacy-protecti
   </a>
 </p>
 
+> [!Note]
+> ## 🛰️ SocioSential — Social Media OSINT
+> [![GitHub](https://img.shields.io/badge/GitHub-h9zdev%2FSocioSential-blue?logo=github&style=flat-square)](https://github.com/h9zdev/SocioSential)
+> ## 📡 EthiFi — WiFi Deauther *(New Version)*
+> [![GitHub](https://img.shields.io/badge/GitHub-h9zdev%2FEthiFi-green?logo=github&style=flat-square)](https://github.com/h9zdev/EthiFi)
+
+<br>
 ## 📶 Supported Signal Intelligence
 
 WireTapper can identify and analyze signals from:
